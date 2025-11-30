@@ -2,6 +2,6 @@ services:
   binance-bot:
     build: .
     restart: always
-    volumes:
-      - ./.env:/app/.env
+    # volumes:
+    #   - ./.env:/app/.env
     # network_mode: host # Optional: use if you need low latency or direct host networking
