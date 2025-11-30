@@ -1,85 +1,218 @@
-# 📊 Guía de Monitoreo del Bot
+# 📊 Guía de Monitoreo del Bot (Estrategia Avanzada)
+
+## 🆕 Configuración Mejorada
+
+Tu bot ahora usa estrategia avanzada de **3 niveles**:
+
+**Level 1 (Básico):**
+- ✅ Stop Loss automático (-2%)
+- ✅ Take Profit automático (+3%)
+- ✅ RSI optimizado (40/60 en vez de 30/70)
+- ✅ Timeframe 5 minutos (menos ruido)
+
+**Level 2 (Intermedio):**
+- ✅ Trailing Stop (sigue el precio si sube +1.5%)
+- ✅ Filtro de volumen (solo opera con volumen alto)
+- ✅ Filtro de tendencia (SMA 50/200 solo compra en uptrend)
+- ✅ Risk/Reward ratio 1:2 (gana el doble de lo que arriesga)
+
+**Level 3 (Avanzado):**
+- ⚠️ ATR-based Stop Loss (dinámico según volatilidad) - DESACTIVADO por defecto
+- ⚠️ Kelly Criterion (tamaño de posición inteligente) - DESACTIVADO por defecto
+- ⚠️ Multi-timeframe (15m + 1h confirmación) - DESACTIVADO por defecto
 
 ## Logs Principales
 
-### ✅ Estado del Bot
+### ✅ Inicio del Bot
 ```
 Starting Binance Trading Bot...
-Execution Service initialized in TESTNET mode
+Strategy Configuration
+  timeframe: 5m
+  stopLoss: 2%
+  takeProfit: 3%
+  trailingStop: 1.5%
+  rsiLevels: 40/60
+  useATR: false
+  useKelly: false
+  useMTF: false
 Initial Balance: 10000 USDT
 Strategy initialized with 100 historical candles
 WebSocket connection established
 ```
 
-### 📈 Actualizaciones de Indicadores (cada minuto)
+### 📈 Actualización de Indicadores (cada 5 minutos)
 ```
 Indicator Update
-  price: 90883.01         ← Precio actual de BTC
-  rsi: 56.99              ← RSI (30=sobreventa, 70=sobrecompra)
-  bbLower: 90775.38       ← Banda inferior
-  bbUpper: 90919.22       ← Banda superior
+  price: 90883.01
+  rsi: 52.79
+  bbLower: 90798.12
+  bbUpper: 90946.32
+  smaShort: 90850.50       ← SMA 50
+  smaLong: 90800.25        ← SMA 200
+  trend: UP                ← Tendencia actual
+  volumeOK: true           ← Volumen suficiente
+  mtfOK: true              ← Multi-timeframe OK
 ```
 
-**Interpretación:**
-- Si `precio < bbLower` Y `rsi < 30` → El bot **COMPRARÁ** 🟢
-- Si `precio > bbUpper` Y `rsi > 70` → El bot **VENDERÁ** 🔴
-- De lo contrario → Sin operación ⚪
+**Interpretación de Señal de COMPRA:**
+Para que el bot compre, TODAS estas condiciones deben cumplirse:
+1. `precio < bbLower` (precio bajo)
+2. `rsi < 40` (sobreventa)
+3. `trend: UP` (tendencia alcista, SMA50 > SMA200)
+4. `volumeOK: true` (volumen > 1.5x promedio)
+5. `mtfOK: true` (si multi-timeframe está activo)
+6. Risk/Reward >= 2:1
 
-### 💰 Cuando COMPRA
+**Interpretación de Señal de VENTA:**
+1. `precio > bbUpper` Y `rsi > 60` (sobrecompra)
+2. O se alcanza **Take Profit** o **Stop Loss**
+
+### 💰 Entrada de Posición (COMPRA)
 ```
 BUY Signal Detected
-Placing BUY order for 0.05 BTC/USDT
-BUY Order Executed
-  orderId: 12345
-  price: 90883.01
-Entered Position: 0.05 BTC
+  stopLoss: 89065.15       ← Precio de stop loss (-2%)
+  takeProfit: 93609.50     ← Precio de take profit (+3%)
+  rrRatio: 2.00            ← Risk/Reward ratio
+
+Position opened
+  entryPrice: 90883.01
+  stopLoss: 89065.15
+  takeProfit: 93609.50
+  amount: 0.11
+  potentialLoss: -2.00%
+  potentialGain: +3.00%
 ```
 
-### 💵 Cuando VENDE
+### 🔄 Trailing Stop Actualizado
+```
+Trailing stop updated
+  newStopLoss: 91200.50    ← Stop loss subió
+  highestPrice: 92563.09   ← Nuevo precio máximo
+```
+
+### 💵 Salida de Posición
+
+**Por Take Profit:**
+```
+Take Profit triggered!
+New Balance after Take Profit
+  balance: 10300 USDT
+  profit: 300.00
+  profitPercent: +3.00%
+  totalTrades: 5
+  winRate: 80.0%
+  totalProfit: 450.00
+```
+
+**Por Stop Loss:**
+```
+Stop Loss triggered!
+New Balance after Stop Loss
+  balance: 9800 USDT
+  profit: -200.00
+  profitPercent: -2.00%
+  totalTrades: 6
+  winRate: 66.7%
+  totalProfit: 250.00
+```
+
+**Por Señal de Venta:**
 ```
 SELL Signal Detected
-Placing SELL order for 0.05 BTC/USDT  
-SELL Order Executed
-  orderId: 12346
-  price: 91200.00
-Exited Position
-New Balance: 10100 USDT    ← Tu nuevo saldo (ganancia/pérdida)
+New Balance after Signal Exit
+  balance: 10150 USDT
+  profit: 150.00
+  profitPercent: +1.50%
+  totalTrades: 7
+  winRate: 71.4%
+  totalProfit: 400.00
 ```
 
-## Ver tu Saldo Actual
+## 🎯 Estadísticas de Performance
 
-El bot muestra el saldo en **dos momentos**:
+El bot ahora muestra:
+- **totalTrades**: Número total de operaciones
+- **winRate**: % de operaciones ganadoras
+- **totalProfit**: Ganancia/pérdida acumulada
 
-1. **Al iniciar:** `Initial Balance: 10000 USDT`
-2. **Después de vender:** `New Balance: 10100 USDT`
+Estos datos se guardan en `trades.json` para análisis.
 
-## Cómo Calcular Ganancias
+## 🧪 Backtesting (Probar Estrategia)
 
+Antes de dejar el bot corriendo, puedes probarlo con datos históricos:
+
+```bash
+BACKTEST_DAYS=30 bun run src/backtester.ts
 ```
-Ganancia = New Balance - Initial Balance
-Ejemplo: 10100 - 10000 = +100 USDT (1% ganancia)
+
+Esto te mostrará:
+- Total Trades
+- Win Rate
+- Total Return (ganancia total)
+- Max Drawdown (pérdida máxima)
+- Sharpe Ratio (calidad de retornos)
+- Profit Factor
+
+**Ejemplo de resultado:**
 ```
+=== BACKTEST RESULTS ===
+Total Trades: 42
+Win Rate: 65.00%
+Total Return: 1250.50 (12.51%)
+Max Drawdown: 5.20%
+Sharpe Ratio: 1.85
+Avg Win: 75.25
+Avg Loss: -42.50
+Profit Factor: 1.77
+========================
+```
+
+## ⚙️ Activar Funciones Avanzadas (Level 3)
+
+Por defecto, las funciones de Level 3 están **desactivadas** para seguridad.
+
+Para activarlas, edita tu `.env`:
+
+```bash
+# ATR-based Stop Loss (recomendado si mercado es muy volátil)
+USE_ATR_STOP_LOSS=true
+
+# Kelly Criterion (ajusta tamaño de posición automáticamente)
+# ⚠️ Solo activar después de 10+ trades exitosos
+USE_KELLY_CRITERION=true
+
+# Multi-timeframe Confirmation (más conservador)
+USE_MULTI_TIMEFRAME=true
+```
+
+## 🛡️ Protección de Capital
+
+Con la estrategia avanzada:
+- **Nunca** pierdes más del 2% por operación (Stop Loss)
+- **Siempre** buscas ganar mínimo 3% (Take Profit)
+- Si el precio sube, el Stop Loss **sube contigo** (Trailing Stop)
+- Solo operas en **tendencia alcista** con **volumen alto**
+
+## 📁 Archivos Generados
+
+- `position_state.json`: Estado actual de la posición (se recupera si reinicias el bot)
+- `trades.json`: Historial completo de todas las operaciones
 
 ## Problemas Comunes
+
+### ⚠️ "Risk/Reward ratio too low, skipping trade"
+→ La operación no cumple con ratio 1:2. Esto es **bueno**, evita malos trades.
 
 ### ⚠️ "Insufficient funds"
 → No tienes suficiente saldo para operar (mínimo ~10 USDT)
 
-### ⚠️ "WebSocket connection closed"
-→ El bot se reconectará automáticamente en 5 segundos
-
-### ⚠️ "Error placing BUY/SELL order"
-→ Verifica tus credenciales de API o límites de Binance
-
-## Configuración Actual
-
-Tu bot usa la estrategia **RSI + Bollinger Bands** con:
-- **Timeframe:** 1 minuto
-- **RSI Oversold:** < 30 (señal de compra)
-- **RSI Overbought:** > 70 (señal de venta)
-- **Risk per Trade:** 1% del saldo total
-- **Ambiente:** TESTNET (dinero ficticio)
+### ℹ️ "Buffering data..."
+→ Esperando datos históricos para SMA 200 (tarda ~15-20 min al inicio)
 
 ---
 
-**💡 Tip:** Deja el bot corriendo y revisa los logs cada hora. En mercados normales, puede tardar horas o días en encontrar una oportunidad de trading perfecta.
+**💡 Tips:**
+1. **Primero backtest:** Prueba con `bun run src/backtester.ts` antes de dejar corriendo el bot
+2. **Revisa trades.json:** Analiza qué operaciones fueron buenas/malas
+3. **Activa Level 3 gradualmente:** Primero solo ATR, luego MTF, por último Kelly
+4. **Monitorea el winRate:** Si baja de 50%, revisa la configuración

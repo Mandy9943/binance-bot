@@ -96,3 +96,69 @@ export function calculateRSI(data: number[], period: number): number[] {
 
   return rsi;
 }
+
+export function calculateEMA(data: number[], period: number): number[] {
+  if (data.length < period) return [];
+
+  const multiplier = 2 / (period + 1);
+  const ema: number[] = [];
+
+  // First EMA is SMA
+  const smaArray = calculateSMA(data, period);
+  if (smaArray.length === 0) return [];
+
+  const firstSMA = smaArray[0];
+  if (firstSMA === undefined) return [];
+
+  ema.push(firstSMA);
+
+  // Subsequent EMAs
+  for (let i = period; i < data.length; i++) {
+    const value = data[i];
+    const prevEMA = ema[ema.length - 1];
+    if (value === undefined || prevEMA === undefined) continue;
+
+    const currentEMA = (value - prevEMA) * multiplier + prevEMA;
+    ema.push(currentEMA);
+  }
+
+  return ema;
+}
+
+export function calculateATR(
+  highs: number[],
+  lows: number[],
+  closes: number[],
+  period: number
+): number[] {
+  if (
+    highs.length < period + 1 ||
+    lows.length < period + 1 ||
+    closes.length < period + 1
+  ) {
+    return [];
+  }
+
+  const trueRanges: number[] = [];
+
+  // Calculate True Range for each period
+  for (let i = 1; i < highs.length; i++) {
+    const high = highs[i];
+    const low = lows[i];
+    const prevClose = closes[i - 1];
+
+    if (high === undefined || low === undefined || prevClose === undefined) {
+      continue;
+    }
+
+    const tr = Math.max(
+      high - low,
+      Math.abs(high - prevClose),
+      Math.abs(low - prevClose)
+    );
+    trueRanges.push(tr);
+  }
+
+  // Calculate ATR using EMA of True Range
+  return calculateEMA(trueRanges, period);
+}

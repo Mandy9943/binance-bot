@@ -114,6 +114,48 @@ export class MarketData {
     }
   }
 
+  public async getRecentCandlesMultiTimeframe(
+    timeframes: string[],
+    limit: number = 100
+  ): Promise<Map<string, Candle[]>> {
+    const result = new Map<string, Candle[]>();
+    const baseUrl = "https://api.binance.com";
+    const endpoint = "/api/v3/klines";
+
+    for (const timeframe of timeframes) {
+      const url = `${baseUrl}${endpoint}?symbol=${this.symbol.toUpperCase()}&interval=${timeframe}&limit=${limit}`;
+
+      try {
+        logger.info(`Fetching ${timeframe} historical data...`);
+        const response = await fetch(url);
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        const data = (await response.json()) as any[];
+
+        const candles = data.map((k: any) => ({
+          time: k[0],
+          open: parseFloat(k[1]),
+          high: parseFloat(k[2]),
+          low: parseFloat(k[3]),
+          close: parseFloat(k[4]),
+          volume: parseFloat(k[5]),
+          isFinal: true,
+        }));
+
+        result.set(timeframe, candles);
+      } catch (error) {
+        logger.error(
+          { err: error, timeframe },
+          "Failed to fetch historical candles for timeframe"
+        );
+        result.set(timeframe, []);
+      }
+    }
+
+    return result;
+  }
+
   private notify(candle: Candle) {
     for (const cb of this.callbacks) {
       cb(candle);
