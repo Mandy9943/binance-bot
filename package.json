@@ -1,0 +1,23 @@
+{
+  "name": "binance-bot",
+  "module": "index.ts",
+  "type": "module",
+  "private": true,
+  "devDependencies": {
+    "@types/bun": "latest",
+    "@types/node": "^24.10.1",
+    "@types/ws": "^8.18.1"
+  },
+  "peerDependencies": {
+    "typescript": "^5.9.3"
+  },
+  "dependencies": {
+    "ccxt": "^4.5.22",
+    "dotenv": "^17.2.3",
+    "long": "^5.3.2",
+    "pino": "^10.1.0",
+    "pino-pretty": "^13.1.2",
+    "protobufjs": "^7.5.4",
+    "ta.js": "^1.16.3"
+  }
+}
