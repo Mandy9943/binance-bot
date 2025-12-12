@@ -24,7 +24,7 @@ export const config = {
 
     // Level 2: Intermediate Filters
     trailingStopPercent: parseFloat(process.env.TRAILING_STOP_PERCENT || "1.5"), // 1.5%
-    minVolumeMultiplier: parseFloat(process.env.MIN_VOLUME_MULTIPLIER || "1.5"), // 1.5x avg volume
+    minVolumeMultiplier: parseFloat(process.env.MIN_VOLUME_MULTIPLIER || "1.0"), // 1.0x avg volume
     smaPeriodShort: parseInt(process.env.SMA_PERIOD_SHORT || "50", 10),
     smaPeriodLong: parseInt(process.env.SMA_PERIOD_LONG || "200", 10),
     riskRewardRatio: parseFloat(process.env.RISK_REWARD_RATIO || "2"), // 1:2
@@ -37,6 +37,7 @@ export const config = {
     kellyFraction: parseFloat(process.env.KELLY_FRACTION || "0.25"), // Conservative Kelly
     multiTimeframes: (process.env.MULTI_TIMEFRAMES || "5m,15m,1h").split(","),
     useMultiTimeframeConfirmation: process.env.USE_MULTI_TIMEFRAME === "true",
+    requireUptrend: process.env.REQUIRE_UPTREND !== "false", // Default true
   },
   logging: {
     level: process.env.LOG_LEVEL || "info",

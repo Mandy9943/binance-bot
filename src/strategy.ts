@@ -186,6 +186,7 @@ export class Strategy {
           smaShort: currentSMAShort?.toFixed(2),
           smaLong: currentSMALong?.toFixed(2),
           trend: isUptrend ? "UP" : isDowntrend ? "DOWN" : "NEUTRAL",
+          volRatio: (currentVolume / avgVolume).toFixed(2),
           volumeOK: hasEnoughVolume,
           mtfOK: mtfConfirmed,
         },
@@ -196,7 +197,9 @@ export class Strategy {
       if (
         price < currentBbLower &&
         currentRsi < config.trading.rsiOversold &&
-        (!config.trading.smaPeriodLong || isUptrend) && // Only buy in uptrend (Level 2)
+        (!config.trading.smaPeriodLong ||
+          !config.trading.requireUptrend ||
+          isUptrend) && // Optional uptrend check
         hasEnoughVolume && // Volume filter (Level 2)
         mtfConfirmed // Multi-timeframe confirmation (Level 3)
       ) {

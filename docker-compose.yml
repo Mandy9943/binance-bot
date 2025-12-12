@@ -29,4 +29,21 @@ services:
       - MULTI_TIMEFRAMES=${MULTI_TIMEFRAMES:-5m,15m,1h}
       - USE_MULTI_TIMEFRAME=${USE_MULTI_TIMEFRAME:-false}
       - LOG_LEVEL=${LOG_LEVEL:-info}
+    healthcheck:
+      test: ["CMD", "pgrep", "-f", "bun"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+        reservations:
+          memory: 256M
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
     # network_mode: host # Optional: use if you need low latency or direct host networking
